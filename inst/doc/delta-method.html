@@ -1,65 +1,358 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="Alex Gold, Nat Olin, Annie Wang" />
 
-<meta name="date" content="2018-02-01" />
+<meta name="date" content="2020-11-21" />
 
 <title>What is the Delta Method?</title>
 
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+<style type="text/css">
+a.anchor-section {margin-left: 10px; visibility: hidden; color: inherit;}
+a.anchor-section::before {content: '#';}
+.hasAnchor:hover a.anchor-section {visibility: visible;}
+</style>
+<script>// Anchor sections v1.0 written by Atsushi Yasumoto on Oct 3rd, 2020.
+document.addEventListener('DOMContentLoaded', function() {
+  // Do nothing if AnchorJS is used
+  if (typeof window.anchors === 'object' && anchors.hasOwnProperty('hasAnchorJSLink')) {
+    return;
+  }
+
+  const h = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+  // Do nothing if sections are already anchored
+  if (Array.from(h).some(x => x.classList.contains('hasAnchor'))) {
+    return null;
+  }
+
+  // Use section id when pandoc runs with --section-divs
+  const section_id = function(x) {
+    return ((x.classList.contains('section') || (x.tagName === 'SECTION'))
+            ? x.id : '');
+  };
+
+  // Add anchors
+  h.forEach(function(x) {
+    const id = x.id || section_id(x.parentElement);
+    if (id === '') {
+      return null;
+    }
+    let anchor = document.createElement('a');
+    anchor.href = '#' + id;
+    anchor.classList = ['anchor-section'];
+    x.classList.add('hasAnchor');
+    x.appendChild(anchor);
+  });
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
 
-<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
 
 </head>
 
@@ -69,8 +362,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">What is the Delta Method?</h1>
-<h4 class="author"><em>Alex Gold, Nat Olin, Annie Wang</em></h4>
-<h4 class="date"><em>2018-02-01</em></h4>
+<h4 class="author">Alex Gold, Nat Olin, Annie Wang</h4>
+<h4 class="date">2020-11-21</h4>
 
 
 
@@ -78,23 +371,23 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>In this package, we follow <a href="https://www.stata.com/help.cgi?margins">Stata’s margins command</a> and use the delta method, which is a semi-parametric method that takes advantage of a closed-form solution to <span class="math inline">\(\frac{d(\text{link}^{-1}(X \beta))}{d(X \beta)}\)</span> to improve computational time relative to simulation or bootstrap methods.</p>
 <div id="the-delta-method" class="section level1">
 <h1>The Delta Method</h1>
-<p>The delta method is a general method for deriving the variance of a function of asymptotically normal random variables with known variance. In this case, the delta method takes advantage of the fact that the margin is (usually) an infinitely differentiable function of the data, <span class="math inline">\(X\)</span>, and the vector of <span class="math inline">\(\beta\)</span>s to derive a closed-form solution for the standard errors of the margin.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+<p>The delta method is a general method for deriving the variance of a function of asymptotically normal random variables with known variance. In this case, the delta method takes advantage of the fact that the margin is (usually) an infinitely differentiable function of the data, <span class="math inline">\(X\)</span>, and the vector of <span class="math inline">\(\beta\)</span>s to derive a closed-form solution for the standard errors of the margin.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
 <p>In particular, the delta method uses a <a href="https://en.wikipedia.org/wiki/Taylor_series">Taylor series</a> expansion of the inverse link function of the regression to approximate the margin in the neighborhood of <span class="math inline">\(X\)</span> and the <span class="math inline">\(\beta\)</span>s and derive variation near that point.</p>
 <div id="a-reminder-about-taylor-series" class="section level2">
 <h2>A Reminder about Taylor Series</h2>
 <p>The <a href="https://en.wikipedia.org/wiki/Taylor_series">Taylor expansion</a> is a useful tool because it allows us to restate a differentiable function, <span class="math inline">\(G(x)\)</span>, in terms of (an infinite sum of) the derivatives of <span class="math inline">\(G(x)\)</span>. To be more precise, an infinitely differentiable <span class="math inline">\(G(x)\)</span> evaluated at <span class="math inline">\(a\)</span> can be written as</p>
-<p><span class="math display">\[G(x) = G(a) + \frac{G'(a)}{1!}(x - a) + \frac{G''(a)}{2!}(x-a)^2 + 
-\frac{G'''(a)}{3!}(x-a)^3 + \dots\]</span></p>
-<p>If we cut off the expansion after some number of terms (two is commmon), we can get a useful approximation of <span class="math inline">\(G(x)\)</span>.</p>
+<p><span class="math display">\[G(x) = G(a) + \frac{G&#39;(a)}{1!}(x - a) + \frac{G&#39;&#39;(a)}{2!}(x-a)^2 + 
+\frac{G&#39;&#39;&#39;(a)}{3!}(x-a)^3 + \dots\]</span></p>
+<p>If we cut off the expansion after some number of terms (two is common), we can get a useful approximation of <span class="math inline">\(G(x)\)</span>.</p>
 </div>
 <div id="taylor-series-and-the-delta-method" class="section level2">
 <h2>Taylor Series and the Delta Method</h2>
-<p>In the case of predicted margins (levels), where the regression model has <a href="https://en.wikipedia.org/wiki/Generalized_linear_model#Link_function">link function</a> <span class="math inline">\(\text{link}\)</span><a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>, the column vector of predicted levels <span class="math inline">\(P_m\)</span> at covariates <span class="math inline">\(X_1\)</span> is</p>
+<p>In the case of predicted margins (levels), where the regression model has <a href="https://en.wikipedia.org/wiki/Generalized_linear_model#Link_function">link function</a> <span class="math inline">\(\text{link}\)</span><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>, the column vector of predicted levels <span class="math inline">\(P_m\)</span> at covariates <span class="math inline">\(X_1\)</span> is</p>
 <p><span class="math display">\[P_m(X_1 \beta) = \text{link}^{-1}(X_1 \beta)\]</span></p>
 <p>The predicted effects <span class="math inline">\(P_e\)</span> of that same regression is a function of <span class="math inline">\(X \beta\)</span> such that</p>
 <p><span class="math display">\[P_e(X_1 \beta) = \frac{d(\text{link}^{-1}(X_1 \beta))}{d(X \beta)}\]</span></p>
 <p>Depending on whether the effect is over a continuous or categorical variable, this may be an actual derivative (the instantaneous rate of change) or the subtraction of <span class="math inline">\(P(X \beta)\)</span> calculated at one value of <span class="math inline">\(X\)</span> from another (the first difference).</p>
-<p>Using the Taylor expansion, we can approximate <span class="math inline">\(P\)</span>, an arbitrary function of the random variable <span class="math inline">\(X \beta\)</span> around the point <span class="math inline">\(X_1 \beta\)</span>, as<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>
+<p>Using the Taylor expansion, we can approximate <span class="math inline">\(P\)</span>, an arbitrary function of the random variable <span class="math inline">\(X \beta\)</span> around the point <span class="math inline">\(X_1 \beta\)</span>, as<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <p><span class="math display">\[P(X \beta) = P(X_1 \beta) + \frac{d(P(X_1 \beta))}{d(X\beta)}(X\beta - X_1 \beta)\]</span></p>
 <p>Now we can substitute for the different margins we’ll care about. For predicted levels, the Taylor expansion is</p>
 <p><span class="math display">\[P_m(X \beta) = \text{link}^{-1}(X_1 \beta) + 
@@ -116,29 +409,29 @@ P_e(X_1 \beta) &amp;= \frac{d(\text{link}^{-1}(X_1 \beta))}{d(X \beta)} +
 </div>
 <div id="how-does-the-delta-method-work" class="section level1">
 <h1>How does the Delta Method Work?</h1>
-<p>The equations above describe how to apprxoimate predicted levels or effects, but why not just calculate our estimate <span class="math inline">\(P(X\beta)\)</span> directly?</p>
+<p>The equations above describe how to approximate predicted levels or effects, but why not just calculate our estimate <span class="math inline">\(P(X\beta)\)</span> directly?</p>
 <p>Well, we can do that for the point estimate, but also want to calculate errors on that estimate, and the variance of <span class="math inline">\(P(X\beta)\)</span> isn’t known. Fortunately, we <em>can</em> calculate the variance of the approximations above. <a href="https://en.wikipedia.org/wiki/Delta_method#Multivariate_delta_method">Wikipedia contains a really nice derivation</a> of the multivariate delta method:</p>
 <p><span class="math display">\[\text{Var}[P(X \beta)] = \text{Var}\left[P(X_1 \beta) + \frac{d(P(X_1 \beta))}{d(X\beta)}(X\beta - X_1 \beta)\right]\]</span></p>
 <p>Because <span class="math inline">\(X_1\beta\)</span> is a known point, it has variance of zero, so this simplifies to</p>
 <p><span class="math display">\[\text{Var}[P(X \beta)] = \text{Var}\left[\frac{d(P(X_1 \beta))}{d(X\beta)} \cdot X\beta\right]\]</span></p>
-<p>The first term in the variance is the vector of partial derivatives of our estimator, also known as our jacobian matrix.<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a> For any predicted level indexed by <span class="math inline">\(i\)</span> in a regression, the <span class="math inline">\(i,j\)</span>th element of the jacobian will be the derivative of predicted level <span class="math inline">\(i\)</span> with respect to regressor <span class="math inline">\(j\)</span>. Those are fixed quantities. We also know the variance of <span class="math inline">\(X\beta\)</span>, since that’s our variance-covariance matrix <span class="math inline">\(V\)</span>.<a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a></p>
-<p>So we want the variance of a random variable multiplied by a fixed matrix, which we can find.<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a></p>
+<p>The first term in the variance is the vector of partial derivatives of our estimator, also known as our jacobian matrix.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a> For any predicted level indexed by <span class="math inline">\(i\)</span> in a regression, the <span class="math inline">\(i,j\)</span>th element of the jacobian will be the derivative of predicted level <span class="math inline">\(i\)</span> with respect to regressor <span class="math inline">\(j\)</span>. Those are fixed quantities. We also know the variance of <span class="math inline">\(X\beta\)</span>, since that’s our variance-covariance matrix <span class="math inline">\(V\)</span>.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+<p>So we want the variance of a random variable multiplied by a fixed matrix, which we can find.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
 <p><span class="math display">\[\text{Var}[P(X \beta)] = \left(\frac{d(P(X_1 \beta))}{d(X\beta)}\right)^T \ V \left(\frac{d(P(X_1 \beta))}{d(X\beta)}\right)\]</span></p>
 <p>So practically speaking, to get our variance, we’ll pre- and post-multiply the partial derivatives of the inverse link function by the original variance-covariance matrix from the regression.</p>
 <p>In short,</p>
 <ol style="list-style-type: decimal">
-<li><p>Calculate the jacobian matrix of the inverse link function of <span class="math inline">\(X \beta\)</span>, <span class="math inline">\(J\)</span>.<a href="#fn7" class="footnoteRef" id="fnref7"><sup>7</sup></a></p></li>
-<li><p>Get the variance-covariance matrix, <span class="math inline">\(V\)</span>, from the regression output, or calculate it some other way.<a href="#fn8" class="footnoteRef" id="fnref8"><sup>8</sup></a></p></li>
+<li><p>Calculate the jacobian matrix of the inverse link function of <span class="math inline">\(X \beta\)</span>, <span class="math inline">\(J\)</span>.<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p></li>
+<li><p>Get the variance-covariance matrix, <span class="math inline">\(V\)</span>, from the regression output, or calculate it some other way.<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a></p></li>
 <li><p>Sandwich multiply the matrices: <span class="math inline">\(J^{T} V J\)</span>. You’ll end up with a <span class="math inline">\(k \times 1\)</span> matrix for the <span class="math inline">\(k\)</span> predicted levels/effects.</p></li>
 </ol>
 </div>
 <div id="example" class="section level1">
 <h1>Example</h1>
 <p>Say we’re fitting a logistic regression using the <code>margex</code> data, and we’re interested in the predicted outcome for different treatment groups:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(modmarg)
-<span class="kw">data</span>(margex)
-lg &lt;-<span class="st"> </span><span class="kw">glm</span>(outcome ~<span class="st"> </span>treatment *<span class="st"> </span>age, <span class="dt">data =</span> margex, <span class="dt">family =</span> <span class="st">'binomial'</span>)
-<span class="kw">summary</span>(lg)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modmarg)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(margex)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>lg <span class="ot">&lt;-</span> <span class="fu">glm</span>(outcome <span class="sc">~</span> treatment <span class="sc">*</span> age, <span class="at">data =</span> margex, <span class="at">family =</span> <span class="st">&#39;binomial&#39;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lg)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## glm(formula = outcome ~ treatment * age, family = &quot;binomial&quot;, 
@@ -155,7 +448,7 @@ lg &lt;-<span class="st"> </span><span class="kw">glm</span>(outcome ~<span clas
 ## age            0.11060    0.01069  10.347   &lt;2e-16 ***
 ## treatment:age -0.01046    0.01301  -0.804   0.4216    
 ## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
@@ -173,47 +466,47 @@ lg &lt;-<span class="st"> </span><span class="kw">glm</span>(outcome ~<span clas
 \]</span> also known as <span class="math inline">\(\hat{y}_i = X_i\beta\)</span>. We can then transform the linear predictors to the scale of the outcome variable (predicted probabilities) with the inverse link function: <span class="math display">\[f(z) = \frac{1}{1 + \exp(-z)}\]</span> Finally, we can find the average predicted level, by taking the average of these predicted probabilities. Combining these, we have: <span class="math display">\[
 P(X\beta) = \frac{1}{n} \sum_{i = 1}^n \frac{1}{1 + \exp(-X_i\beta)}
 \]</span> Now let’s do this in R: set treatment to 0 or 1, generate linear predictors, transform them to predicted outcomes, and take the mean.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Extract the n x k matrix of data</span>
-x &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(lg)
-
-<span class="co"># Extract the coefficients from the model (a column vector with k entries)</span>
-beta &lt;-<span class="st"> </span><span class="kw">matrix</span>(lg$coefficients)
-
-<span class="co"># CONTROL:</span>
-
-<span class="co"># Set treatment and treatment:age to 0 for all observations</span>
-x[, <span class="st">&quot;treatment&quot;</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
-x[, <span class="st">'treatment:age'</span>] &lt;-<span class="st"> </span>x[, <span class="st">'treatment'</span>] *<span class="st"> </span>x[, <span class="st">'age'</span>]
-
-<span class="co"># Get linear predictors</span>
-pred_ctl &lt;-<span class="st"> </span>x %*%<span class="st"> </span>beta
-
-<span class="co"># Apply the inverse link function to get predicted probabilities</span>
-pp_ctl &lt;-<span class="st"> </span><span class="dv">1</span> /<span class="st"> </span>(<span class="dv">1</span> +<span class="st"> </span><span class="kw">exp</span>(-pred_ctl))
-
-<span class="co"># Get the average predicted probability</span>
-mean_pp_ctl &lt;-<span class="st"> </span><span class="kw">mean</span>(pp_ctl)
-
-<span class="co"># TREATMENT:</span>
-
-<span class="co"># Set treatment to 1 and treatment:age to age for all observations</span>
-x[, <span class="st">&quot;treatment&quot;</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
-x[, <span class="st">'treatment:age'</span>] &lt;-<span class="st"> </span>x[, <span class="st">'treatment'</span>] *<span class="st"> </span>x[, <span class="st">'age'</span>]
-
-<span class="co"># Get linear predictors</span>
-pred_treat &lt;-<span class="st"> </span>x %*%<span class="st"> </span>beta
-
-<span class="co"># Apply the inverse link function to get predicted probabilities</span>
-pp_treat &lt;-<span class="st"> </span><span class="dv">1</span> /<span class="st"> </span>(<span class="dv">1</span> +<span class="st"> </span><span class="kw">exp</span>(-pred_treat))
-
-<span class="co"># Get the average predicted probability</span>
-mean_pp_treat &lt;-<span class="st"> </span><span class="kw">mean</span>(pp_treat)
-
-<span class="co"># RESULTS:</span>
-
-mean_pp_ctl</code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the n x k matrix of data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(lg)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the coefficients from the model (a column vector with k entries)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(lg<span class="sc">$</span>coefficients)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># CONTROL:</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Set treatment and treatment:age to 0 for all observations</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&quot;treatment&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&#39;treatment:age&#39;</span>] <span class="ot">&lt;-</span> x[, <span class="st">&#39;treatment&#39;</span>] <span class="sc">*</span> x[, <span class="st">&#39;age&#39;</span>]</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Get linear predictors</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>pred_ctl <span class="ot">&lt;-</span> x <span class="sc">%*%</span> beta</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the inverse link function to get predicted probabilities</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>pp_ctl <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pred_ctl))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the average predicted probability</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>mean_pp_ctl <span class="ot">&lt;-</span> <span class="fu">mean</span>(pp_ctl)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># TREATMENT:</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Set treatment to 1 and treatment:age to age for all observations</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&quot;treatment&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&#39;treatment:age&#39;</span>] <span class="ot">&lt;-</span> x[, <span class="st">&#39;treatment&#39;</span>] <span class="sc">*</span> x[, <span class="st">&#39;age&#39;</span>]</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Get linear predictors</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>pred_treat <span class="ot">&lt;-</span> x <span class="sc">%*%</span> beta</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the inverse link function to get predicted probabilities</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>pp_treat <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pred_treat))</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the average predicted probability</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>mean_pp_treat <span class="ot">&lt;-</span> <span class="fu">mean</span>(pp_treat)</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="co"># RESULTS:</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>mean_pp_ctl</span></code></pre></div>
 <pre><code>## [1] 0.1126685</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mean_pp_treat</code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>mean_pp_treat</span></code></pre></div>
 <pre><code>## [1] 0.208375</code></pre>
 </div>
 <div id="variance" class="section level2">
@@ -223,21 +516,20 @@ mean_pp_ctl</code></pre></div>
 <p>As explained above, we can approximate the variance of the predicted margins: using <span class="math inline">\(J\)</span> to represent the jacobian (the derivative of our transformation with respect to each <span class="math inline">\(\beta\)</span> parameter), then</p>
 <p><span class="math display">\[\text{Var}(P(X\beta)) =  J V J^T\]</span></p>
 <p>Going back to our function from before, let’s start with the coefficient on treatment, <span class="math inline">\(\beta_1\)</span>. First we just apply the quotient rule (and the chain rule in the last step):</p>
-\begin{align*}
+<p><span class="math display">\[\begin{align*}
 P(X\beta) &amp;= \frac{1}{n} \sum_{i = 1}^n \frac{1}{1 + \exp(-X_i\beta)}\\
 \frac{\partial}{\partial \beta_1} P(X\beta) &amp;= \frac{\partial}{\partial \beta_1} \left[\frac{1}{n} \sum_{i = 1}^n \frac{1}{1 + \exp(-X_i\beta )}\right]\\
 &amp;= \frac{1}{n} \sum_{i = 1}^n \frac{\partial}{\partial \beta_1} \left[\frac{1}{1 + \exp(-X_i\beta)}\right]\\
 &amp;= \frac{1}{n} \sum_{i = 1}^n \frac{-\frac{\partial}{\partial \beta_1}[1 + \exp(-X_i\beta)]}{(1 + \exp(-X_i\beta))^2} \\
 &amp;= \frac{1}{n} \sum_{i = 1}^n \frac{-\exp(-X_i\beta)}{(1 + \exp(-X_i\beta))^2} \cdot \frac{\partial}{\partial \beta_1} [-X_i\beta]
-\end{align*}
+\end{align*}\]</span></p>
 <p>Coming up for air for a second: what’s the last term in that final expression?</p>
 <p><span class="math inline">\(X_i\beta = \alpha + \beta_1 \tau_i + \beta_2 \text{age}_i + \beta_3 (\tau_i \cdot \text{age}_i)\)</span>, so the derivative of that with respect to <span class="math inline">\(\beta_1\)</span> is just <span class="math inline">\(\tau_i\)</span>. Therefore,</p>
-\begin{align*}
+<p><span class="math display">\[\begin{align*}
 \frac{\partial}{\partial \beta_1} P(X\beta) 
 &amp;= \frac{1}{n} \sum_{i = 1}^n \frac{-\exp(-X_i\beta)}{(1 + \exp(-X_i\beta))^2} \cdot (-\tau_i)\\
 &amp;= \frac{1}{n} \sum_{i = 1}^n \frac{\exp(-X_i\beta)}{(1 + \exp(-X_i\beta))^2} \cdot \tau_i
-\end{align*}
-<p>which is the first term of our jacobian.<a href="#fn9" class="footnoteRef" id="fnref9"><sup>9</sup></a></p>
+\end{align*}\]</span> which is the first term of our jacobian.<a href="#fn9" class="footnote-ref" id="fnref9"><sup>9</sup></a></p>
 <p>What about the other terms? Well, because the <span class="math inline">\(X_i\beta\)</span> term is additively separable, each term is the same, except for having a different term at the end. For example, the derivative with respect to <span class="math inline">\(\beta_2\)</span> is going to be</p>
 <p><span class="math display">\[\frac{1}{n} \sum_{i = 1}^n \frac{\exp(-X_i\beta))}{(1 + \exp(-X_i\beta))^2} \cdot \text{age}_i\]</span>.</p>
 <p>So the full jacobian is <span class="math display">\[
@@ -275,64 +567,64 @@ J =
 <p>The first term applies the derivative of the inverse link function to every linear predictor in the model, and the second term is the covariate matrix from our data! How convenient! That’s going to be true for all general linear models. So we can rewrite this as</p>
 <p><span class="math display">\[J = \frac{\left[\begin{array}\\ \frac{\exp(-X_1\beta)}{(1 + \exp(-X_1\beta))^2} &amp; \frac{\exp(-X_2\beta)}{(1 + \exp(-X_2\beta))^2} &amp; \cdots &amp; \frac{\exp(-X_n\beta)}{(1 + \exp(-X_n\beta))^2}\end{array}\right] X}{n}\]</span></p>
 <p>Recalling that our variance is <span class="math inline">\(J V J^T\)</span>, and that we’ve already calculated <span class="math inline">\(X_i\beta\)</span> for all <span class="math inline">\(i\)</span>, this is relatively simple to do in R:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Get the data</span>
-x &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(lg)
-
-<span class="co"># CONTROL ERROR</span>
-
-<span class="co"># Apply the derivative of the inverse link function to the linear predictors</span>
-deriv &lt;-<span class="st"> </span><span class="kw">as.vector</span>(<span class="kw">exp</span>(-pred_ctl) /<span class="st"> </span>(<span class="dv">1</span> +<span class="st"> </span><span class="kw">exp</span>(-pred_ctl))^<span class="dv">2</span>)
-
-<span class="co"># Set treatment to 0</span>
-x[, <span class="st">'treatment'</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
-x[, <span class="st">'treatment:age'</span>] &lt;-<span class="st"> </span>x[, <span class="st">'treatment'</span>] *<span class="st"> </span>x[, <span class="st">'age'</span>]
-
-<span class="co"># Complete the chain rule by matrix-multiplying the derivatives by the data,</span>
-<span class="co"># now we have the jacobian</span>
-j &lt;-<span class="st"> </span>deriv %*%<span class="st"> </span>x /<span class="st"> </span><span class="kw">nrow</span>(x)
-
-<span class="co"># The variance of our estimate is the cross product of the jacobian and the model's</span>
-<span class="co"># variance-covariance matrix</span>
-variance &lt;-<span class="st"> </span>j %*%<span class="st"> </span><span class="kw">vcov</span>(lg) %*%<span class="st"> </span><span class="kw">t</span>(j)
-
-<span class="co"># The error is the square root of that</span>
-se_ctl &lt;-<span class="st"> </span><span class="kw">sqrt</span>(<span class="kw">diag</span>(variance))
-
-<span class="co"># TREATMENT ERROR: same logic</span>
-
-deriv &lt;-<span class="st"> </span><span class="kw">as.vector</span>(<span class="kw">exp</span>(-pred_treat) /<span class="st"> </span>(<span class="dv">1</span> +<span class="st"> </span><span class="kw">exp</span>(-pred_treat))^<span class="dv">2</span>)
-
-x &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(lg)
-
-x[, <span class="st">'treatment'</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
-x[, <span class="st">'treatment:age'</span>] &lt;-<span class="st"> </span>x[, <span class="st">'treatment'</span>] *<span class="st"> </span>x[, <span class="st">'age'</span>]
-
-j &lt;-<span class="st"> </span>deriv %*%<span class="st"> </span>x /<span class="st"> </span><span class="kw">nrow</span>(x)
-
-variance &lt;-<span class="st"> </span>j %*%<span class="st"> </span><span class="kw">vcov</span>(lg) %*%<span class="st"> </span><span class="kw">t</span>(j)
-se_treat &lt;-<span class="st"> </span><span class="kw">sqrt</span>(<span class="kw">diag</span>(variance))
-
-se_ctl</code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(lg)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># CONTROL ERROR</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the derivative of the inverse link function to the linear predictors</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>deriv <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">exp</span>(<span class="sc">-</span>pred_ctl) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pred_ctl))<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Set treatment to 0</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&#39;treatment&#39;</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&#39;treatment:age&#39;</span>] <span class="ot">&lt;-</span> x[, <span class="st">&#39;treatment&#39;</span>] <span class="sc">*</span> x[, <span class="st">&#39;age&#39;</span>]</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Complete the chain rule by matrix-multiplying the derivatives by the data,</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># now we have the jacobian</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>j <span class="ot">&lt;-</span> deriv <span class="sc">%*%</span> x <span class="sc">/</span> <span class="fu">nrow</span>(x)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"># The variance of our estimate is the cross product of the jacobian and the model&#39;s</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># variance-covariance matrix</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>variance <span class="ot">&lt;-</span> j <span class="sc">%*%</span> <span class="fu">vcov</span>(lg) <span class="sc">%*%</span> <span class="fu">t</span>(j)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># The error is the square root of that</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>se_ctl <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(variance))</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co"># TREATMENT ERROR: same logic</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>deriv <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">exp</span>(<span class="sc">-</span>pred_treat) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>pred_treat))<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(lg)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&#39;treatment&#39;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>x[, <span class="st">&#39;treatment:age&#39;</span>] <span class="ot">&lt;-</span> x[, <span class="st">&#39;treatment&#39;</span>] <span class="sc">*</span> x[, <span class="st">&#39;age&#39;</span>]</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>j <span class="ot">&lt;-</span> deriv <span class="sc">%*%</span> x <span class="sc">/</span> <span class="fu">nrow</span>(x)</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>variance <span class="ot">&lt;-</span> j <span class="sc">%*%</span> <span class="fu">vcov</span>(lg) <span class="sc">%*%</span> <span class="fu">t</span>(j)</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>se_treat <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">diag</span>(variance))</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>se_ctl</span></code></pre></div>
 <pre><code>## [1] 0.009334252</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">se_treat</code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>se_treat</span></code></pre></div>
 <pre><code>## [1] 0.009089667</code></pre>
 </div>
 <div id="review" class="section level2">
 <h2>Review</h2>
 <p>OK, we’ve got our estimates and variance:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">result &lt;-<span class="st"> </span><span class="kw">data.frame</span>(
-  <span class="dt">Label =</span> <span class="kw">c</span>(<span class="st">&quot;treatment = 0&quot;</span>, <span class="st">&quot;treatment = 1&quot;</span>),
-  <span class="dt">Margin =</span> <span class="kw">c</span>(mean_pp_ctl, mean_pp_treat),
-  <span class="dt">Standard.Error =</span> <span class="kw">c</span>(se_ctl, se_treat)
-)
-
-result</code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Label =</span> <span class="fu">c</span>(<span class="st">&quot;treatment = 0&quot;</span>, <span class="st">&quot;treatment = 1&quot;</span>),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Margin =</span> <span class="fu">c</span>(mean_pp_ctl, mean_pp_treat),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Standard.Error =</span> <span class="fu">c</span>(se_ctl, se_treat)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>result</span></code></pre></div>
 <pre><code>##           Label    Margin Standard.Error
 ## 1 treatment = 0 0.1126685    0.009334252
 ## 2 treatment = 1 0.2083750    0.009089667</code></pre>
 <p>What do we get from modmarg?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">marg &lt;-<span class="st"> </span>modmarg::<span class="kw">marg</span>(<span class="dt">mod =</span> lg, <span class="dt">var_interest =</span> <span class="st">'treatment'</span>)
-marg[[<span class="dv">1</span>]][, <span class="kw">c</span>(<span class="st">&quot;Label&quot;</span>, <span class="st">&quot;Margin&quot;</span>, <span class="st">&quot;Standard.Error&quot;</span>)]</code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>marg <span class="ot">&lt;-</span> modmarg<span class="sc">::</span><span class="fu">marg</span>(<span class="at">mod =</span> lg, <span class="at">var_interest =</span> <span class="st">&#39;treatment&#39;</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>marg[[<span class="dv">1</span>]][, <span class="fu">c</span>(<span class="st">&quot;Label&quot;</span>, <span class="st">&quot;Margin&quot;</span>, <span class="st">&quot;Standard.Error&quot;</span>)]</span></code></pre></div>
 <pre><code>##           Label    Margin Standard.Error
 ## 1 treatment = 0 0.1126685    0.009334252
 ## 2 treatment = 1 0.2083750    0.009089667</code></pre>
@@ -342,18 +634,21 @@ marg[[<span class="dv">1</span>]][, <span class="kw">c</span>(<span class="st">&
 <div class="footnotes">
 <hr />
 <ol>
-<li id="fn1"><p>“Usually” because this statement requires that the canonical link function for the regression has a closed-form derivative. Luckily, this is true for most common forms of linear regression.<a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p>The exact form of the link function and its inverse will depend on the type of regression. For example, the logit function is the canonical link function for logistic regression and allows transformations between probabilities and log-odds.<a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p>Note that we treat the input <span class="math inline">\(X\)</span> as fixed and <span class="math inline">\(\beta\)</span> as a random variable.<a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p>The Jacobian matrix is just the name of the matrix of all first partial derviatives of a vector-valued function.<a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p>As a quick reminder about the variance-covariance matrix, if your model contains coefficients <span class="math inline">\(b_0\)</span> to <span class="math inline">\(b_n\)</span> (each with mean <span class="math inline">\(\mu_{b_i}\)</span> and standard deviation <span class="math inline">\(\sigma_{b_i}\)</span>), the <span class="math inline">\(i,j\)</span>th element of the variance-covariance matrix is <span class="math inline">\(cov(b_i, b_j)\)</span>.<a href="#fnref5">↩</a></p></li>
-<li id="fn6"><p>Quick reminder: for scalar <span class="math inline">\(a\)</span> and <span class="math inline">\(r\)</span>, where <span class="math inline">\(b\)</span> is the variance of random variable <span class="math inline">\(r\)</span>, <span class="math inline">\(\text{Var}(a \cdot r)\)</span> is <span class="math inline">\(a^2 \cdot b\)</span>. The matrix analog of <span class="math inline">\(a^2 \cdot \text{Var}(b)\)</span> is <span class="math inline">\(ABA^T\)</span>.<a href="#fnref6">↩</a></p></li>
-<li id="fn7"><p>Some practical notes on calculating the jacobian: the example at the bottom of the vignette captures how to calculate the jacobian for predicted levels pretty thoroughly. For predictive effects, the big change is that you are now calculating the variance on predicted effects, so you need to take the second derivative of the link function (instead of the first derivative). For categorical variables, you can take the second derivative by subtracting each of the levels from the base level and returning that as the jacobian. For continuous variables, you need to actually compute the second derivative of the link function and use that in place of the first derivative above. You need to explicitly compute the second derivative because you want an instantaneous rate of change as opposed to the rate of change over a range as with categorical variables above.<a href="#fnref7">↩</a></p></li>
-<li id="fn8"><p>Usually you’ll just want the variance-covariance matrix of the regression, but you’ll need to modify the standard variance-covariance matrix if you want to cluster standard errors or something.<a href="#fnref8">↩</a></p></li>
-<li id="fn9"><p>Note that the first part of the expression is sometimes written <span class="math inline">\(\frac{1}{1 + \exp(-X_i\beta)} \cdot \frac{1}{1 + \exp(X_i\beta)}\)</span> since that implies <span class="math inline">\(\frac{\partial}{\partial \beta} \text{logit}^{-1}(X\beta) = \text{logit}^{-1}(X\beta) \cdot \text{logit}^{-1}(-X\beta)\)</span><a href="#fnref9">↩</a></p></li>
+<li id="fn1"><p>“Usually” because this statement requires that the canonical link function for the regression has a closed-form derivative. Luckily, this is true for most common forms of linear regression.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>The exact form of the link function and its inverse will depend on the type of regression. For example, the logit function is the canonical link function for logistic regression and allows transformations between probabilities and log-odds.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Note that we treat the input <span class="math inline">\(X\)</span> as fixed and <span class="math inline">\(\beta\)</span> as a random variable.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>The Jacobian matrix is just the name of the matrix of all first partial derivatives of a vector-valued function.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>As a quick reminder about the variance-covariance matrix, if your model contains coefficients <span class="math inline">\(b_0\)</span> to <span class="math inline">\(b_n\)</span> (each with mean <span class="math inline">\(\mu_{b_i}\)</span> and standard deviation <span class="math inline">\(\sigma_{b_i}\)</span>), the <span class="math inline">\(i,j\)</span>th element of the variance-covariance matrix is <span class="math inline">\(cov(b_i, b_j)\)</span>.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>Quick reminder: for scalar <span class="math inline">\(a\)</span> and <span class="math inline">\(r\)</span>, where <span class="math inline">\(b\)</span> is the variance of random variable <span class="math inline">\(r\)</span>, <span class="math inline">\(\text{Var}(a \cdot r)\)</span> is <span class="math inline">\(a^2 \cdot b\)</span>. The matrix analog of <span class="math inline">\(a^2 \cdot \text{Var}(b)\)</span> is <span class="math inline">\(ABA^T\)</span>.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>Some practical notes on calculating the jacobian: the example at the bottom of the vignette captures how to calculate the jacobian for predicted levels pretty thoroughly. For predictive effects, the big change is that you are now calculating the variance on predicted effects, so you need to take the second derivative of the link function (instead of the first derivative). For categorical variables, you can take the second derivative by subtracting each of the levels from the base level and returning that as the jacobian. For continuous variables, you need to actually compute the second derivative of the link function and use that in place of the first derivative above. You need to explicitly compute the second derivative because you want an instantaneous rate of change as opposed to the rate of change over a range as with categorical variables above.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
+<li id="fn8"><p>Usually you’ll just want the variance-covariance matrix of the regression, but you’ll need to modify the standard variance-covariance matrix if you want to cluster standard errors or something.<a href="#fnref8" class="footnote-back">↩︎</a></p></li>
+<li id="fn9"><p>Note that the first part of the expression is sometimes written <span class="math inline">\(\frac{1}{1 + \exp(-X_i\beta)} \cdot \frac{1}{1 + \exp(X_i\beta)}\)</span> since that implies <span class="math inline">\(\frac{\partial}{\partial \beta} \text{logit}^{-1}(X\beta) = \text{logit}^{-1}(X\beta) \cdot \text{logit}^{-1}(-X\beta)\)</span><a href="#fnref9" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

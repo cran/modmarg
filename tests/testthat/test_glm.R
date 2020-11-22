@@ -341,7 +341,14 @@ test_that("marg input is checked", {
   # lm should fail
   margex$sex <- factor(margex$sex)
   ml <- lm(y ~ sex + age, margex)
-  expect_error(marg(mod = lm, var_interest = 'sex'))
+  expect_error(marg(mod = ml, var_interest = 'sex'),
+               "no applicable method for 'marg' applied to an object of class \"lm\"",
+               fixed = T)
+
+  # string formulas shouldn't work
+  mm <- glm('y ~ sex + age', margex, family = 'gaussian')
+  expect_error(marg(mod = mm, var_interest = 'sex'),
+               regexp = "Estimate your model with a formula object, not a character string.")
 
   # extrapolated values are troubling
   mm <- glm(y ~ sex + age, margex, family = 'gaussian')
@@ -355,6 +362,13 @@ test_that("marg input is checked", {
   expect_error(marg(mod = mm, var_interest = 'sex',
                     at = list(agegroup = '12')),
                "'12' is not a value in 'agegroup'",
+               fixed = TRUE)
+
+  # multiple extrapolated factors are broken
+  mm <- glm(y ~ sex + agegroup, data = margex)
+  expect_error(marg(mod = mm, var_interest = 'sex',
+                    at = list(agegroup = c('12', '13'))),
+               "'12, 13' is not a value in 'agegroup'",
                fixed = TRUE)
 })
 

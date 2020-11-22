@@ -82,9 +82,6 @@ gen_at_list <- function(df, var_interest, at_var_interest = NULL){
 handle_missing <- function(model, data, weights, nrow_orig){
 
   # Add weights
-  if('_weights' %in% all.vars(model$formula))
-    stop("You cannot use the name '_weights' in the model formula. ",
-         "Please rename to another variable.")
   if(is.null(weights)) weights <- rep(1, nrow_orig)
 
   # Keep completes only
@@ -93,9 +90,9 @@ handle_missing <- function(model, data, weights, nrow_orig){
   data <- data[! miss, , drop = FALSE]
 
   # Remove any booleans
-  if(all(data$`T` == TRUE))
+  if(all(data$`T` %in% c(TRUE, NA)))
     data$`T` <- NULL
-  if(all(data$`F` == FALSE))
+  if(all(data$`F` %in% c(FALSE, NA)))
     data$`F` <- NULL
 
   # Throw warning if rows were dropped
